@@ -120,16 +120,12 @@ fi
 ECHO ""
 ECHO ""
 
-##########
-#Need to get the auto-updates finished...
-##########
-
 #Ask about automatic updating
-#ECHO "Automatic updates will keep software up to date, but may add or change functionality."
-#ECHO "This could break existing scripts or workflows, but may also fix security flaws."
-#ECHO "Would you like to disable updates, enable security updates, or enable all automatic updates? [D]/S/A"
+#####ECHO "Automatic updates will keep software up to date, but may add or change functionality."
+#####ECHO "This could break existing scripts or workflows, but may also fix security flaws."
+#####ECHO "Would you like to disable updates, enable security updates, or enable all automatic updates? [D]/S/A"
 
-#echo "This needs to be finished..."
+#####echo "This needs to be finished..."
 
 #IF CENTOS: Ask if they would like to disable iptables and ip6tables for easier networking
 if [[ $distro = "centos" ]] && [[ `service iptables status | grep -c "Table: filter"` == 1 || `service ip6tables status | grep -c "Table: filter"` == 1  ]]
