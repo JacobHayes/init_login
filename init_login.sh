@@ -5,11 +5,20 @@
 #
 #Copyright (C) 2013 Jacob Hayes
 #
-#Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+#Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
+#associated documentation files (the "Software"), to deal in the Software without restriction, 
+#including without limitation the rights to use, copy, modify, merge, publish, distribute, 
+#sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is 
+#furnished to do so, subject to the following conditions:
 #
-#The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+#The above copyright notice and this permission notice shall be included in all copies or substantial
+#portions of the Software.
 #
-#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+#THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT 
+#NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND 
+#NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES
+#OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
+#CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 ####################################################################################################
 #
@@ -26,26 +35,105 @@
 #
 ####################################################################################################
 
-function PASSWORD 
-{
-   ECHO ""
-   ECHO ""
-   #Prompt for password change on first login
-   ECHO "For security reasons, please change your password. If you would prefer not to, press CTRL-C"
-   ECHO "NOTE: We will not have your new password, and cannot recover it. Keep it safe!"
-
-   trap 'ECHO Skipping password change... | tee -a $logfile && stty echo' SIGINT
-   passwd -f root | tee -a $logfile
-   trap - SIGINT
-
-   ECHO "Done!"
-}
+#####################
+#Universal Functions#
+#####################
 
 function ECHO 
 {
    message=$1
 
    echo "$message" | tee -a $logfile
+}
+
+function USAGE
+{
+   echo "
+############
+SCRIPT USAGE
+############
+
+Script to get new VM ready for initial use.
+
+OPTIONS:
+   -a
+      Run all steps...
+   -m
+      Manage auto updates...
+   -p
+      Change password...
+   -t
+      Enable or disable ip(6)tables...
+   -u
+      Check/install updates...
+"
+
+   exit 1
+}
+
+###################
+#Program Functions#
+###################
+
+function AUTO_UP
+{
+   ECHO ""
+   ECHO ""
+
+   #Ask about automatic updating
+   if [[ $distro = "centos" ]]
+   then
+      ECHO "Automatic updates will keep software up to date, but may add or change functionality."
+      ECHO "This could break existing scripts or workflows, but may also fix security flaws."
+      printf "Would you like to disable updates, enable security updates, or enable all automatic updates? [D]/S/A: "
+      read reply_au 
+      reply_au=${reply_au:-D}
+
+      echo $reply_au >> $logfile
+      ECHO ""
+
+      if [[ $reply_au = "d" || $reply_au = "D" ]]
+      then
+         ECHO "Disabling automatic updates..."
+
+         if [[ -f "/etc/init.d/yum-cron" ]]
+         then
+            yum erase -y --remove-leaves yum-cron >> $logfile
+         fi
+
+         ECHO "I should probably make this check for the security updates and disable them if installed."
+      elif [[ $reply_au = "s" || $reply_au = "S" ]]
+      then
+         ECHO "Enabling automatic security updates..."
+
+         up_script="/etc/cron.daily/secure_update"
+         touch $up_script
+         chmod 755 $up_script
+
+         echo "#!/bin/bash" >> $up_script
+         echo "DAYS=1" >> $up_script
+         echo "" >> $up_script
+         echo "/usr/bin/yum update -y --security" >> $up_script
+
+         ECHO "STILL NOT QUITE SURE IF THE ABOVE"
+         ECHO "ACTUALLY GETS THE JOB DONE..."
+
+      elif [[ $reply_au = "a" || $reply_au = "A" ]]
+      then
+         ECHO "Enabling automatic updates..."
+
+         yum install -y yum-cron >> $logfile
+         service yum-cron start >> $logfile
+         chkconfig yum-cron on >> $logfile
+
+         ECHO "Config file: /etc/sysconfig/yum-cron"
+      fi
+   elif [[ $distro = "ubuntu" ]]
+   then
+      ECHO "Automatic updates are not yet configured for Ubuntu..."
+   fi
+
+   ECHO "Done!"
 }
 
 function IPTABLES
@@ -96,6 +184,21 @@ function IPTABLES
    then
       ECHO "Ubuntu's iptables and ip6tables are passive by default. No action is required."
    fi
+
+   ECHO "Done!"
+}
+
+function PASSWORD 
+{
+   ECHO ""
+   ECHO ""
+   #Prompt for password change
+   ECHO "For security reasons, please change your password. If you would prefer not to, press CTRL-C"
+   ECHO "NOTE: We will not have your new password, and cannot recover it. Keep it safe!"
+
+   trap 'ECHO Skipping password change... | tee -a $logfile && stty echo' SIGINT
+   passwd -f root | tee -a $logfile
+   trap - SIGINT
 
    ECHO "Done!"
 }
@@ -152,87 +255,13 @@ function UPDATES
       fi
    fi
 
-ECHO ""
-ECHO ""
-
-   if [[ $distro = "centos" ]]
-   then
-      #Ask about automatic updating
-      ECHO "Automatic updates will keep software up to date, but may add or change functionality."
-      ECHO "This could break existing scripts or workflows, but may also fix security flaws."
-      printf "Would you like to disable updates, enable security updates, or enable all automatic updates? [D]/S/A: "
-      read reply_au 
-      reply_au=${reply_au:-D}
-
-      echo $reply_au >> $logfile
-      ECHO ""
-
-      if [[ $reply_au = "d" || $reply_au = "D" ]]
-      then
-         ECHO "Disabling automatic updates..."
-
-         if [[ -f "/etc/init.d/yum-cron" ]]
-         then
-            yum erase -y --remove-leaves yum-cron >> $logfile
-         fi
-
-         ECHO "I should probably make this check for the security updates and disable them if installed."
-      elif [[ $reply_au = "s" || $reply_au = "S" ]]
-      then
-         ECHO "Enabling automatic security updates..."
-
-         up_script="/etc/cron.daily/secure_update"
-         touch $up_script
-         chmod 755 $up_script
-
-         echo "#!/bin/bash" >> $up_script
-         echo "DAYS=1" >> $up_script
-         echo "" >> $up_script
-         echo "/usr/bin/yum update -y --security" >> $up_script
-
-         ECHO "STILL NOT QUITE SURE IF THE ABOVE"
-         ECHO "ACTUALLY GETS THE JOB DONE..."
-
-      elif [[ $reply_au = "a" || $reply_au = "A" ]]
-      then
-         ECHO "Enabling automatic updates..."
-
-         yum install -y yum-cron >> $logfile
-         service yum-cron start >> $logfile
-         chkconfig yum-cron on >> $logfile
-
-         ECHO "Config file: /etc/sysconfig/yum-cron"
-      fi
-   elif [[ $distro = "ubuntu" ]]
-   then
-      ECHO "Automatic updates are not yet configured for Ubuntu..."
-   fi
-
    ECHO "Done!"
 }
 
-function USAGE
-{
-echo "
+
 ############
-SCRIPT USAGE
+#Main Calls#
 ############
-
-Script to get new VM ready for initial use.
-
-OPTIONS:
-   -a
-      Run all steps...
-   -p
-      Change password...
-   -t
-      Enable or disable ip(6)tables...
-   -u
-      Check/install updates and automatic update setup...
-"
-
-exit 1
-}
 
 clear
 
@@ -263,14 +292,19 @@ else
    exit 1
 fi
 
-while getopts ":aptu" opt
+while getopts ":amptu" opt
 do
    case $opt in
       a)
          PASSWORD
          UPDATES
+         AUTO_UP
          IPTABLES
-         break
+         flag="a"
+         ;;
+      m)
+         AUTO_UP
+         flag="m"
          ;;
       p)
          PASSWORD
