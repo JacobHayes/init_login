@@ -242,11 +242,11 @@ function UPDATES
 
       echo $reply_upd >> $logfile
 
-      if [[ $reply_upd == "n" || $reply_upd == "N" ]]
+      if [[ $reply_upd = "n" || $reply_upd = "N" ]]
       then
          ECHO ""
          ECHO "Skipping updates..."
-      elif [[ $reply_upd == "y" || $reply_upd == "Y" ]]
+      elif [[ $reply_upd = "y" || $reply_upd = "Y" ]]
       then
          ECHO ""
          ECHO "Preforming updates..."
