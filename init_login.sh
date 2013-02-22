@@ -216,7 +216,7 @@ function UPDATES
       if (( num_upd > 0 ))
       then
          ECHO "$num_upd updates available."
-         update="yum -y update >> $logfile"
+         update="yum -y update"
       fi
 
    elif [[ $distro = "ubuntu" ]]
@@ -227,7 +227,7 @@ function UPDATES
       if (( $num_upd > 0 ))
       then
          ECHO "$num_upd updates available."
-         update="apt-get -y upgrade >> $logfile"
+         update="apt-get -y upgrade"
       fi
    fi
 
@@ -251,7 +251,7 @@ function UPDATES
          ECHO ""
          ECHO "Preforming updates..."
 
-         $update
+         $update >> $logfile
       fi
    fi
 
@@ -275,6 +275,8 @@ logfile=/var/log/init_login.log
 
 printf "" > $logfile
 chmod 644 $logfile
+
+echo "Logfile: $logfile"
 
 if [[ -f /etc/centos-release ]]
 then
