@@ -1,14 +1,33 @@
 init_login.sh
 ========
 
-Script to to preform initial VM setup for the customer on first login
+Script to get new VM ready for initial use.
 
+```
+OPTIONS:
+   -a
+      Run all steps...
 
-1. For security, we finally prompt the user to change the password
+   -m
+      Manage auto updates (only CentOS for now) with yum-cron or a cron job
 
-2. Next, we perform updates with yum or apt-get if available. Then we ask to enable/disable automatic updates
+   -p
+      Change password...
 
-3. Lastly, we prompt to disable the iptables and ip6tables firewalls for easier port management, at the risk of potential decreased security
+   -t
+      Enable or disable ip(6)tables...
+
+   -u
+      Check/install updates with either yum or apt-get
+```
+
+Future...
+========
+
+I might add the ability to upload id_rsa.pubs to the remote host, in which case another script would run locally to upload the id_rsa.pub=>authorized_keys to the remote host and then scp init_login.sh to the remote host and run it there.
+
+License
+========
 
 Copyright (C) 2013 Jacob Hayes
 
