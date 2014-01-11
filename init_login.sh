@@ -24,11 +24,13 @@
 #
 # Script to get the system ready for initial use
 #
-# For security, we first prompt the user to change the password from the randomly generated one
+# For security, we first prompt the user to change the password from the default
 #
 # Secondly, if updates are available, we prompt for install through yum or apt-get
 # We also prompt if they would like security or normal automatic updates and if not we setup
 # scheduled update checks and then mail the user when updates are found.
+#
+#Next, prompt to add SSH keys to ~/.ssh/authorized_keys
 #
 # Finally, we prompt to disable the iptables and ip6tables firewalls for easier port management, at
 # the risk of potential decreased security
@@ -62,6 +64,8 @@ OPTIONS:
       Manage auto updates...
    -p
       Change password...
+   -s
+      Add ssh keys...
    -t
       Enable or disable ip(6)tables...
    -u
@@ -193,7 +197,7 @@ function PASSWORD
    ECHO ""
    ECHO ""
    #Prompt for password change
-   ECHO "For security reasons, please change your password. If you would prefer not to, press CTRL-C"
+   ECHO "For security reasons, please change your pasuword. If you would prefer not to, press CTRL-C"
    ECHO "NOTE: We will not have your new password, and cannot recover it. Keep it safe!"
 
    trap 'ECHO Skipping password change... | tee -a $logfile && stty echo' SIGINT
@@ -205,7 +209,6 @@ function PASSWORD
 
 function UPDATES
 {
-   ECHO""
    ECHO ""
    ECHO "Checking for updates..."
 
@@ -258,6 +261,13 @@ function UPDATES
    ECHO "Done!"
 }
 
+function SSH
+{
+   ECHO "Need to add support for adding SSH keys to ~/.ssh/authorized_keys"
+   ECHO "I need to figure out how to create the directory and file(s) without first"
+   ECHO "connecting to another SSH server."
+}
+
 
 ############
 #Main Calls#
@@ -294,13 +304,14 @@ else
    exit 1
 fi
 
-while getopts ":amptu" opt
+while getopts ":ampstu" opt
 do
    case $opt in
       a)
          PASSWORD
          UPDATES
          AUTO_UP
+         SSH
          IPTABLES
          flag="a"
          ;;
@@ -311,6 +322,10 @@ do
       p)
          PASSWORD
          flag="p"
+         ;;
+      s)
+         SSH
+         flag="s"
          ;;
       t)
          IPTABLES
@@ -338,3 +353,10 @@ ECHO ""
 ECHO "####################################################################################################"
 ECHO "                                 Done! Have fun with your server!                                   "
 ECHO "####################################################################################################"
+
+#
+#
+#Add SSH key import (id_rsa.pub), where you paste ssh keys and it adds them ~/.ssh/authorized_keys
+#
+#Also add hostname changer. It overwrites the /etc/sysconfig/network with correct HOSTNAME
+#

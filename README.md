@@ -14,6 +14,9 @@ OPTIONS:
    -p
       Change password...
 
+   -s
+      Add ssh keys...
+
    -t
       Enable or disable ip(6)tables...
 
