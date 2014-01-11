@@ -1,7 +1,7 @@
 init_login.sh
 ========
 
-Script to get new VM ready for initial use.
+Script to get new system ready for initial use.
 
 ```
 OPTIONS:
@@ -18,24 +18,29 @@ OPTIONS:
       Add ssh keys...
 
    -t
-      Enable or disable ip(6)tables...
+      Enable or disable `ip(6)tables`...
 
    -u
-      Check/install updates with either yum or apt-get
+      Check/install updates with either `yum` or `apt-get`
 ```
 
-Future...
-========
+Future/ToDo
+-----------
 
-I might add the ability to upload id_rsa.pubs to the remote host, in which case another script would run locally to upload the id_rsa.pub=>authorized_keys to the remote host and then scp init_login.sh to the remote host and run it there.
+See the following for ideas/tips on distro ID (shamelessly stealing from Chef/Ohai)
+https://github.com/opscode/ohai/blob/master/lib/ohai/plugins/linux/platform.rb
 
-License
-========
+  - Upload/Download pubkeys to authorized_keys
+    - Perhaps can run client side to upload keys and script and then run script
+    - Or could download pubkeys for a specified location
 
-Copyright (C) 2013 Jacob Hayes
-
-Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS," WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+- Branches:
+  - profile_templates
+    - Make the profiles templates for deploying instead of running init_login.sh
+    - Include shell tweaks, customizations, etc. Maybe include things like [login_metrics](https://github.com/JacobHayes/login_metrics) too
+  - devel_languages
+    - Add support for `python3` and `rvm`+`ruby` installations as well as `go`. Maybe `haskell` too
+    - Include dependency support, ex `brew` et al on OS X
+  - server_config
+    - Add support for service config/hardening (ex `sshd`, `ftp`)
+    - Perhaps support for things like Apache/nginx, though I think that starts to be Chef's place
